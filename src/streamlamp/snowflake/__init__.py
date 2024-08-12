@@ -84,18 +84,16 @@ def query1(sql):
   return df[df.columns[0]][0]
 
 def land(st, df, table, columns):
-  '''Land a Pandas DataFrame (df) into a HISTORIC_* base table, using the LANDING_* variant.  This clears out the LANDING_* table, writes the data frame to it, and then loads that into the HISTORIC_* table with appropriate loaded_by / loaded_at and valid_from values.'''
+  '''Land a Pandas DataFrame (df) into a HISTORIC_* base table, using the LANDING_* variant.  This clears out the LANDING_* table, writes the data frame to it, and then loads that into the HISTORIC_* table with appropriate loaded_by / loaded_at values.'''
   st.markdown(f'writing {df.shape[0]} results to `HISTORIC_{table.upper()}`...')
 
   execute(f'truncate table landing_{table}')
   write_pandas(session(), df, f'landing_{table}'.upper())
   execute(f'''
-    insert into {database}.{schema}.historic_{table}
-      ({', '.join(columns)},
-       valid_from, loaded_by, loaded_at)
-    select {', '.join(columns)},
-           current_date(), current_user(), current_timestamp()
-      from {database}.{schema}.landing_{table}
+    insert into historic_{table}
+      ({', '.join(columns)}, loaded_by, loaded_at)
+    select {', '.join(columns)}, current_user(), current_timestamp()
+      from landing_{table}
   ''')
   st.markdown(f'🎉 done!')
 
