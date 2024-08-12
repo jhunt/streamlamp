@@ -1,4 +1,65 @@
 import streamlit as st
+import snowflake
+import snowflake.connector
+
+def authenticated():
+  return 'snowflake' in st.session_state and st.session_state['snowflake'] is not None
+
+def login_sidebar(default_account=None, default_database=None, default_role=None, default_warehouse=None, default_schema=None, default_query_tag='streamlamp/snowflake', default_username=None, via_mfa_passcode=False):
+  with st.sidebar:
+    st.title('Connect to Snowflake')
+    account   = st.text_input('Account', placeholder = 'i.e. abc1234567.us-central1.gcp', value = default_account)
+    username  = st.text_input('Username')
+
+    if via_mfa_passcode:
+      c1, c2 = st.columns(2)
+      password  = c1.text_input('Password', type = 'password')
+      passcode  = c2.text_input('MFA Passscode', placeholder = '12345')
+
+      database  = c1.text_input('Database', value = default_database, placeholder = '(optional)')
+      role      = c2.text_input('Role', value = default_role, placeholder = '(optional)')
+
+    else:
+      password  = st.text_input('Password', type = 'password')
+      c1, c2 = st.columns(2)
+
+      database  = c1.text_input('Database', value = default_database, placeholder = '(optional)')
+      role      = c2.text_input('Role', value = default_role, placeholder = '(optional)')
+
+    advanced  = st.expander('Advanced Settings')
+    schema    = advanced.text_input('Schema', value = default_schema, placeholder = '(optional)')
+    warehouse = advanced.text_input('Warehouse', value = default_warehouse, placeholder = '(optional)')
+    query_tag = advanced.text_input('Query Tag', value = default_query_tag, placeholder = '(optional)')
+    login = st.button('Login', type='primary')
+
+    if login:
+      if via_mfa_passcode:
+        st.session_state['snowflake'] = snowflake.connector.connect(
+          user = username,
+          password = password,
+          passcode = passcode,
+          account = account,
+          warehouse = warehouse,
+          role = role,
+          database = database,
+          schema = schema,
+          session_parameters = {
+            'QUERY_TAG': query_tag,
+          }
+        )
+      else:
+        st.session_state['snowflake'] = snowflake.connector.connect(
+          user = username,
+          password = password,
+          account = account,
+          warehouse = warehouse,
+          role = role,
+          database = database,
+          schema = schema,
+          session_parameters = {
+            'QUERY_TAG': query_tag,
+          }
+        )
 
 def session():
     return st.session_state['snowflake']
