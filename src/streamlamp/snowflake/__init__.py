@@ -1,3 +1,4 @@
+import tempfile
 import streamlit as st
 import snowflake
 import snowflake.connector
@@ -97,3 +98,15 @@ def land(st, df, table, columns):
       from {database}.{schema}.landing_{table}
   ''')
   st.markdown(f'🎉 done!')
+
+def put_uploaded_file(uf, stage='~'):
+  with tempfile.NamedTemporaryFile(mode = 'wb') as tf:
+    tf.write(uf.read())
+    tf.seek(0)
+    execute(f'put file://{tf.name} @{stage}')
+
+def put_uploaded_bytes(buf, stage='~'):
+  with tempfile.NamedTemporaryFile(mode = 'wb') as tf:
+    tf.write(buf)
+    tf.seek(0)
+    execute(f'put file://{tf.name} @{stage}')
