@@ -56,3 +56,7 @@ def land(st, df, table, columns, debug=False):
     st.markdown(f"```\n{sql}\n```")
   execute(sql)
   st.markdown(f'🎉 done!')
+
+def replace(df, table, if_exists='replace'):
+  execute(f'delete from {table}')
+  df.to_sql(table, con=session(), if_exists=if_exists, index=False)

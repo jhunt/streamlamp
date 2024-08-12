@@ -2,6 +2,7 @@ import tempfile
 import streamlit as st
 import snowflake
 import snowflake.connector
+from snowflake.connector.pandas_tools import write_pandas
 
 def authenticated():
   return 'snowflake' in st.session_state and st.session_state['snowflake'] is not None
@@ -96,6 +97,10 @@ def land(st, df, table, columns):
       from landing_{table}
   ''')
   st.markdown(f'🎉 done!')
+
+def replace(df, table):
+  execute(f'truncate table {table}')
+  write_pandas(session(), df, table.upper())
 
 def put_uploaded_file(uf, stage='~'):
   with tempfile.NamedTemporaryFile(mode = 'wb') as tf:
